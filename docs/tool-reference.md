@@ -1,11 +1,13 @@
 <!-- AUTO GENERATED DO NOT EDIT - run 'npm run gen' to update-->
 
-# Chrome DevTools MCP Tool Reference (~6940 cl100k_base tokens)
+# Chrome DevTools MCP Tool Reference (~7622 cl100k_base tokens)
 
-- **[Input automation](#input-automation)** (9 tools)
+- **[Input automation](#input-automation)** (11 tools)
   - [`click`](#click)
+  - [`click_by_selector`](#click_by_selector)
   - [`drag`](#drag)
   - [`fill`](#fill)
+  - [`fill_by_selector`](#fill_by_selector)
   - [`fill_form`](#fill_form)
   - [`handle_dialog`](#handle_dialog)
   - [`hover`](#hover)
@@ -30,9 +32,10 @@
 - **[Network](#network)** (2 tools)
   - [`get_network_request`](#get_network_request)
   - [`list_network_requests`](#list_network_requests)
-- **[Debugging](#debugging)** (6 tools)
+- **[Debugging](#debugging)** (7 tools)
   - [`evaluate_script`](#evaluate_script)
   - [`get_console_message`](#get_console_message)
+  - [`get_dom_subtree`](#get_dom_subtree)
   - [`lighthouse_audit`](#lighthouse_audit)
   - [`list_console_messages`](#list_console_messages)
   - [`take_screenshot`](#take_screenshot)
@@ -47,6 +50,18 @@
 **Parameters:**
 
 - **uid** (string) **(required)**: The uid of an element on the page from the page content snapshot
+- **dblClick** (boolean) _(optional)_: Set to true for double clicks. Default is false.
+- **includeSnapshot** (boolean) _(optional)_: Whether to include a snapshot in the response. Default is false.
+
+---
+
+### `click_by_selector`
+
+**Description:** [`Click`](#click) an element identified by a CSS selector. Use this instead of [`click`](#click)() when you have a CSS selector but no uid from a snapshot.
+
+**Parameters:**
+
+- **selector** (string) **(required)**: A CSS selector to target the element on the page.
 - **dblClick** (boolean) _(optional)_: Set to true for double clicks. Default is false.
 - **includeSnapshot** (boolean) _(optional)_: Whether to include a snapshot in the response. Default is false.
 
@@ -71,6 +86,18 @@
 **Parameters:**
 
 - **uid** (string) **(required)**: The uid of an element on the page from the page content snapshot
+- **value** (string) **(required)**: The value to [`fill`](#fill) in
+- **includeSnapshot** (boolean) _(optional)_: Whether to include a snapshot in the response. Default is false.
+
+---
+
+### `fill_by_selector`
+
+**Description:** Type a value into an input, textarea, or select element identified by a CSS selector. Use this instead of [`fill`](#fill)() when you have a CSS selector but no uid from a snapshot.
+
+**Parameters:**
+
+- **selector** (string) **(required)**: A CSS selector to target the element on the page.
 - **value** (string) **(required)**: The value to [`fill`](#fill) in
 - **includeSnapshot** (boolean) _(optional)_: Whether to include a snapshot in the response. Default is false.
 
@@ -157,7 +184,7 @@
 
 ### `list_pages`
 
-**Description:** Get a list of pages open in the browser.
+**Description:** Get a list of pages  open in the browser.
 
 **Parameters:** None
 
@@ -323,12 +350,12 @@ so returned values have to be JSON-serializable.
 **Parameters:**
 
 - **function** (string) **(required)**: A JavaScript function declaration to be executed by the tool in the currently selected page.
-  Example without arguments: `() => {
+Example without arguments: `() => {
   return document.title
 }` or `async () => {
   return await fetch("example.com")
 }`.
-  Example with arguments: `(el) => {
+Example with arguments: `(el) => {
   return el.innerText;
 }`
 
@@ -343,6 +370,17 @@ so returned values have to be JSON-serializable.
 **Parameters:**
 
 - **msgid** (number) **(required)**: The msgid of a console message on the page from the listed console messages
+
+---
+
+### `get_dom_subtree`
+
+**Description:** Return the DOM subtree rooted at the element matching the given CSS selector as structured JSON. Useful for inspecting table, form, or component structures without retrieving the full page.
+
+**Parameters:**
+
+- **selector** (string) **(required)**: A CSS selector to identify the target element.
+- **maxDepth** (integer) _(optional)_: Maximum depth of the subtree to return (default: 10). Lower values reduce token usage.
 
 ---
 

@@ -398,6 +398,124 @@ export const uploadFile = definePageTool({
   },
 });
 
+const selectorSchema = zod
+  .string()
+  .describe('A CSS selector to target the element on the page.');
+
+export const clickBySelector = definePageTool({
+  name: 'click_by_selector',
+  description: `Click an element identified by a CSS selector. Use this instead of click() when you have a CSS selector but no uid from a snapshot.`,
+  annotations: {
+    category: ToolCategory.INPUT,
+    readOnlyHint: false,
+  },
+  schema: {
+    selector: selectorSchema,
+    dblClick: dblClickSchema,
+    includeSnapshot: includeSnapshotSchema,
+  },
+  handler: async (request, response, context) => {
+    const {selector} = request.params;
+    const page = request.page.pptrPage;
+
+    const count = await page.evaluate(
+      (sel: string) => document.querySelectorAll(sel).length,
+      selector,
+    );
+    if (count === 0) {
+      throw new Error(
+        `No element found for selector "${selector}". Check the selector or use take_snapshot to inspect the page structure.`,
+      );
+    }
+
+    await context.waitForEventsAfterAction(async () => {
+      await page.click(selector, {
+        count: request.params.dblClick ? 2 : 1,
+      });
+    });
+
+    response.appendResponseLine(
+      request.params.dblClick
+        ? `Successfully double clicked on "${selector}"`
+        : `Successfully clicked on "${selector}"`,
+    );
+    if (count > 1) {
+      response.appendResponseLine(
+        `Warning: ${count} elements matched the selector. Clicked the first one.`,
+      );
+    }
+    if (request.params.includeSnapshot) {
+      response.includeSnapshot();
+    }
+  },
+});
+
+export const fillBySelector = definePageTool({
+  name: 'fill_by_selector',
+  description: `Type a value into an input, textarea, or select element identified by a CSS selector. Use this instead of fill() when you have a CSS selector but no uid from a snapshot.`,
+  annotations: {
+    category: ToolCategory.INPUT,
+    readOnlyHint: false,
+  },
+  schema: {
+    selector: selectorSchema,
+    value: zod.string().describe('The value to fill in'),
+    includeSnapshot: includeSnapshotSchema,
+  },
+  handler: async (request, response, context) => {
+    const {selector, value} = request.params;
+    const page = request.page.pptrPage;
+
+    const info = await page.evaluate((sel: string) => {
+      const els = document.querySelectorAll(sel);
+      if (els.length === 0) {
+        return {count: 0, disabled: false, readOnly: false};
+      }
+      const el = els[0] as HTMLInputElement | HTMLTextAreaElement;
+      return {
+        count: els.length,
+        disabled: (el as HTMLInputElement).disabled ?? false,
+        readOnly: (el as HTMLInputElement).readOnly ?? false,
+      };
+    }, selector);
+
+    if (info.count === 0) {
+      throw new Error(
+        `No element found for selector "${selector}". Check the selector or use take_snapshot to inspect the page structure.`,
+      );
+    }
+    if (info.disabled) {
+      throw new Error(
+        `Element "${selector}" is disabled and cannot be filled.`,
+      );
+    }
+    if (info.readOnly) {
+      throw new Error(
+        `Element "${selector}" is read-only and cannot be filled.`,
+      );
+    }
+
+    await context.waitForEventsAfterAction(async () => {
+      const timeoutPerChar = 10;
+      const fillTimeout =
+        page.getDefaultTimeout() + value.length * timeoutPerChar;
+      await page.locator(selector).setTimeout(fillTimeout).fill(value);
+    });
+
+    response.appendResponseLine(
+      `Successfully filled "${selector}" with the provided value`,
+    );
+    if (info.count > 1) {
+      response.appendResponseLine(
+        `Warning: ${info.count} elements matched the selector. Filled the first one.`,
+      );
+    }
+    if (request.params.includeSnapshot) {
+      response.includeSnapshot();
+    }
+  },
+});
+
 export const pressKey = definePageTool({
   name: 'press_key',
   description: `Press a key or key combination. Use this when other input methods like fill() cannot be used (e.g., keyboard shortcuts, navigation keys, or special key combinations).`,
