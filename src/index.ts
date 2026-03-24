@@ -141,6 +141,12 @@ export async function createMcpServer(
       return;
     }
     if (
+      tool.annotations.category === ToolCategory.CUSTOM &&
+      serverArgs.categoryCustom === false
+    ) {
+      return;
+    }
+    if (
       tool.annotations.conditions?.includes('computerVision') &&
       !serverArgs.experimentalVision
     ) {

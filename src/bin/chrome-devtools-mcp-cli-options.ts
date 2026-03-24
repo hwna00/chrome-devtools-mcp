@@ -216,6 +216,11 @@ export const cliOptions = {
     describe:
       'Set to true to include tools related to extensions. Note: This feature is only supported with a pipe connection. autoConnect is not supported.',
   },
+  categoryCustom: {
+    type: 'boolean',
+    default: true,
+    describe: 'Set to false to exclude custom compound tools.',
+  },
   performanceCrux: {
     type: 'boolean',
     default: true,
